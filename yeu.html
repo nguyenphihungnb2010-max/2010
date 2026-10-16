@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiệu Ứng Hoa Nở & Tri Ân Thầy Cô 20/11</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #05020a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Màn hình chờ bắt đầu */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 2, 10, 0.96);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1.2s ease;
+        }
+
+        #start-screen h1 {
+            color: #ffb6c1;
+            margin-bottom: 25px;
+            font-size: 26px;
+            text-align: center;
+            padding: 0 20px;
+            text-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            border: none;
+            padding: 16px 38px;
+            border-radius: 30px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.7);
+            transition: transform 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.08);
+        }
+
+        /* Khung thiệp chúc mừng Tri Ân Thầy Cô */
+        .card-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 10;
+            background: rgba(25, 10, 35, 0.88);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+            border: 1px solid rgba(255, 223, 128, 0.4);
+            text-align: center;
+            backdrop-filter: blur(15px);
+            max-width: 450px;
+            width: 90%;
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card-container.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .card-container h2 {
+            margin: 0 0 10px 0;
+            color: #ffdf80;
+            font-size: 26px;
+        }
+
+        .card-container h3 {
+            margin: 0 0 15px 0;
+            color: #ff99bb;
+            font-size: 16px;
+        }
+
+        .card-container p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #fce4ec;
+            margin-bottom: 20px;
+        }
+
+        .signature {
+            font-style: italic;
+            color: #ffb366;
+            font-weight: bold;
+            text-align: right;
+            display: block;
+        }
+
+        /* Nút điều khiển nhạc */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            border: none;
+            padding: 12px 22px;
+            border-radius: 30px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(253, 160, 133, 0.5);
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Màn hình chờ mở đầu -->
+    <div id="start-screen">
+        <h1>Nhấn để mở đóa hoa tri ân Thầy Cô 20/11 ❤️</h1>
+        <button class="start-btn" onclick="startExperience()">Bắt Đầu Ngay</button>
+    </div>
+
+    <!-- Khung chứa hiệu ứng 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- Hộp nội dung tri ân Thầy Cô -->
+    <div class="card-container" id="cardBox">
+        <h2>Tri Ân Thầy Cô</h2>
+        <h3>Chào Mừng Ngày Nhà Giáo Việt Nam 20/11</h3>
+        <p>Nhân ngày 20/11, em xin gửi những lời chúc tốt đẹp và chân thành nhất đến các thầy cô. Cảm ơn thầy cô đã luôn tận tụy dìu dắt chúng em nên người, truyền đạt cho chúng em bao tri thức quý giá!</p>
+        <span class="signature">Món quà tri ân từ học trò ❤️</span>
+    </div>
+
+    <!-- Nhạc nền bài hát (Thay link mp3 của bạn vào đây) -->
+    <audio id="bgMusic" loop>
+        <source src="https://example.com/nhac-tri-an.mp3" type="audio/mpeg">
+    </audio>
+
+    <button class="music-control" id="musicBtn" onclick="toggleMusic()">
+        <span>🎵</span> <span id="musicBtnText">Tắt Nhạc</span>
+    </button>
+
+    <!-- Thư viện Three.js và GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <script>
+        let music = document.getElementById('bgMusic');
+        let isPlaying = false;
+
+        function startExperience() {
+            // Ẩn màn hình chờ
+            document.getElementById('start-screen').style.opacity = 0;
+            setTimeout(() => {
+                document.getElementById('start-screen').style.display = 'none';
+            }, 1200);
+
+            // Phát nhạc nền
+            music.play().then(() => {
+                isPlaying = true;
+                document.getElementById('musicBtn').style.display = 'flex';
+            }).catch(e => console.log(e));
+
+            // Chạy chuỗi hiệu ứng
+            runAnimationSequence();
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                music.pause();
+                isPlaying = false;
+                document.getElementById('musicBtnText').innerText = "Bật Nhạc";
+            } else {
+                music.play();
+                isPlaying = true;
+                document.getElementById('musicBtnText').innerText = "Tắt Nhạc";
+            }
+        }
+
+        // Khởi tạo không gian 3D Three.js
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // 1. Hiệu ứng hoa nở tung tóe ở phần mở đầu
+        const flowerGeometry = new THREE.BufferGeometry();
+        const particleCount = 1200;
+        const positions = new Float32Array(particleCount * 3);
+        const targetPositions = new Float32Array(particleCount * 3);
+
+        for(let i = 0; i < particleCount * 3; i += 3) {
+            positions[i] = 0;
+            positions[i+1] = 0;
+            positions[i+2] = 0;
+
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = 2.0 + Math.sin(theta * 5) * 0.5 + Math.random() * 1.2;
+
+            targetPositions[i] = r * Math.sin(phi) * Math.cos(theta);
+            targetPositions[i+1] = r * Math.sin(phi) * Math.sin(theta);
+            targetPositions[i+2] = r * Math.cos(phi);
+        }
+
+        flowerGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const flowerMaterial = new THREE.PointsMaterial({
+            size: 0.05,
+            color: 0xff4d88,
+            transparent: true,
+            opacity: 0.95,
+            blending: THREE.AdditiveBlending
+        });
+        const flowerMesh = new THREE.Points(flowerGeometry, flowerMaterial);
+        scene.add(flowerMesh);
+
+        // 2. Tạo khối cầu 3D gồm các bức ảnh/thiệp tri ân Thầy Cô
+        const sphereGroup = new THREE.Group();
+        sphereGroup.scale.set(0, 0, 0);
+        const geometryCard = new THREE.PlaneGeometry(0.32, 0.22);
+        const totalCards = 36;
+        
+        for (let i = 0; i < totalCards; i++) {
+            const canvasCard = document.createElement('canvas');
+            canvasCard.width = 160;
+            canvasCard.height = 110;
+            const ctx = canvasCard.getContext('2d');
+            
+            // Thiết kế giao diện từng tấm ảnh/thiệp tri ân (Có thể thay đổi bằng hình ảnh thầy cô thực tế)
+            ctx.fillStyle = '#fff5e6';
+            ctx.fillRect(0, 0, 160, 110);
+            ctx.fillStyle = '#e65c00';
+            ctx.font = 'bold 13px Arial';
+            ctx.fillText('Tri Ân Thầy Cô', 15, 45);
+            ctx.fillStyle = '#333';
+            ctx.font = '11px Arial';
+            ctx.fillText('Kính chúc 20-11', 15, 75);
+
+            const texture = new THREE.CanvasTexture(canvasCard);
+            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geometryCard, material);
+
+            const phi = Math.acos(-1 + (2 * i) / totalCards);
+            const theta = Math.sqrt(totalCards * Math.PI) * phi;
+
+            mesh.position.setFromSphericalCoords(1.9, phi, theta);
+            mesh.lookAt(0, 0, 0);
+            sphereGroup.add(mesh);
+        }
+        scene.add(sphereGroup);
+
+        camera.position.z = 4.5;
+
+        // Chuỗi hiệu ứng chuyển động
+        function runAnimationSequence() {
+            const posAttr = flowerGeometry.attributes.position;
+            
+            // Hiệu ứng hoa nở tung tóe
+            gsap.to({}, {
+                duration: 2.5,
+                onUpdate: function() {
+                    for(let i = 0; i < particleCount * 3; i++) {
+                        posAttr.array[i] += (targetPositions[i] - posAttr.array[i]) * 0.09;
+                        posAttr.array[i+1] += (targetPositions[i+1] - posAttr.array[i+1]) * 0.09;
+                        posAttr.array[i+2] += (targetPositions[i+2] - posAttr.array[i+2]) * 0.09;
+                    }
+                    posAttr.needsUpdate = true;
+                    flowerMesh.rotation.y += 0.005;
+                },
+                onComplete: () => {
+                    // Thu nhỏ hoa nở và phóng to khối cầu ảnh thầy cô
+                    gsap.to(flowerMesh.scale, { x: 0, y: 0, z: 0, duration: 1 });
+                    gsap.to(sphereGroup.scale, { x: 1, y: 1, z: 1, duration: 1.6, ease: "back.out(1.7)" });
+                    
+                    // Hiển thị khung chữ chính giữa
+                    document.getElementById('cardBox').classList.add('show');
+
+                    // Xoay khối cầu ảnh không gian 3D
+                    gsap.to(sphereGroup.rotation, {
+                        y: Math.PI * 4,
+                        duration: 35,
+                        repeat: -1,
+                        ease: "none"
+                    });
+                }
+            });
+        }
+
+        // Vòng lặp Render 3D
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Xử lý thay đổi kích thước màn hình
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
