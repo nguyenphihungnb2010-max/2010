@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiệu Ứng Hoa Nở & Tri Ân 20/11</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #05020a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Màn hình chờ bắt đầu hiệu ứng hoa nở */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 2, 10, 0.96);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        #start-screen h1 {
+            color: #ffb6c1;
+            margin-bottom: 25px;
+            font-size: 26px;
+            text-align: center;
+            padding: 0 20px;
+            text-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            border: none;
+            padding: 15px 35px;
+            border-radius: 30px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(255, 105, 180, 0.6);
+            transition: transform 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Khung thiệp chúc mừng Tri Ân Thầy Cô */
+        .card-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 10;
+            background: rgba(25, 10, 35, 0.88);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+            border: 1px solid rgba(255, 223, 128, 0.4);
+            text-align: center;
+            backdrop-filter: blur(15px);
+            max-width: 450px;
+            width: 90%;
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        .card-container.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .card-container h2 {
+            margin: 0 0 10px 0;
+            color: #ffdf80;
+            font-size: 26px;
+        }
+
+        .card-container h3 {
+            margin: 0 0 15px 0;
+            color: #ff99bb;
+            font-size: 16px;
+        }
+
+        .card-container p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #fce4ec;
+            margin-bottom: 20px;
+        }
+
+        .signature {
+            font-style: italic;
+            color: #ffb366;
+            font-weight: bold;
+            text-align: right;
+            display: block;
+        }
+
+        /* Nút điều khiển nhạc */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(253, 160, 133, 0.5);
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Màn hình mở đầu để kích hoạt hiệu ứng hoa nở và phát nhạc -->
+    <div id="start-screen">
+        <h1>Nhấn để mở đóa hoa tri ân Thầy Cô 20/11 ❤️</h1>
+        <button class="start-btn" onclick="startExperience()">Bắt Đầu Ngay</button>
+    </div>
+
+    <!-- Khung chứa hiệu ứng 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- Hộp nội dung tri ân Thầy Cô -->
+    <div class="card-container" id="cardBox">
+        <h2>Tri Ân Thầy Cô</h2>
+        <h3>Chào
