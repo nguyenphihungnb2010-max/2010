@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chờ Anh Chút Thôi - Full 3D Effects</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #05020a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Giao diện Thiệp & Hộp thư tương tác */
+        .card-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            background: rgba(25, 10, 30, 0.85);
+            padding: 25px 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(255, 105, 180, 0.5);
+            border: 1px solid rgba(255, 192, 203, 0.4);
+            text-align: center;
+            backdrop-filter: blur(12px);
+            max-width: 420px;
+            width: 90%;
+            transition: all 0.5s ease;
+        }
+
+        .card-container h2 {
+            margin: 0 0 12px 0;
+            color: #ffb6c1;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .card-container p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #fce4ec;
+            margin-bottom: 15px;
+        }
+
+        .signature {
+            font-style: italic;
+            color: #ff85a2;
+            font-weight: bold;
+            text-align: right;
+            display: block;
+        }
+
+        /* Nút điều khiển nhạc */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.5);
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .music-control:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #ff5272, #ff639d);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Khung chứa hiệu ứng 3D Three.js -->
+    <div id="canvas-container"></div>
+
+    <!-- Nội dung Hộp thư / Thiệp chúc mừng -->
+    <div class="card-container" id="cardBox">
+        <h2>Gửi Em !</h2>
+        <p>Hôm nay là ngày 20-10, chúc nửa thế giới còn lại luôn xinh đẹp, vui vẻ và ngập tràn hạnh phúc. Cảm ơn vì em đã luôn đến bên và mang theo những điều tuyệt vời nhất!</p>
+        <span class="signature">@saphocit</span>
+    </div>
+
+    <!-- Nhạc nền (Thay link mp3 của bạn vào đây) -->
+    <audio id="bgMusic" loop>
+        <source src="https://example.com/cho-anh-chut-thoi.mp3" type="audio/mpeg">
+        Trình duyệt của bạn không hỗ trợ thẻ audio.
+    </audio>
+
+    <button class="music-control" onclick="toggleMusic()">
+        <span>🎵</span> <span id="musicBtnText">Bật Nhạc Nền</span>
+    </button>
+
+    <!-- Thư viện Three.js và GSAP (hỗ trợ chuyển động hoạt ảnh mượt mà) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <script>
+        // Xử lý bật/tắt âm thanh
+        const music = document.getElementById('bgMusic');
+        const btnText = document.getElementById('musicBtnText');
+        let isPlaying = false;
+
+        function toggleMusic() {
+            if (isPlaying) {
+                music.pause();
+                isPlaying = false;
+                btnText.innerText = "Bật Nhạc Nền";
+            } else {
+                music.play().then(() => {
+                    isPlaying = true;
+                    btnText.innerText = "Tắt Nhạc Nền";
+                }).catch(e => {
+                    console.log("Trình duyệt chặn autoplay, cần tương tác.");
+                });
+            }
+        }
+
+        // Tự động kích hoạt âm thanh khi click màn hình lần đầu
+        document.body.addEventListener('click', () => {
+            if (!isPlaying) {
+                music.play().then(() => {
+                    isPlaying = true;
+                    btnText.innerText = "Tắt Nhạc Nền";
+                }).catch(e => {});
+            }
+        }, { once: true });
+
+        // Khởi tạo không gian 3D Three.js
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // 1. Tạo hệ thống hạt sao lấp lánh nền vũ trụ
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 2000;
+        const starPositions = new Float32Array(starCount * 3);
+
+        for(let i = 0; i < starCount * 3; i++) {
+            starPositions[i] = (Math.random() - 0.5) * 15;
+        }
+
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMaterial = new THREE.PointsMaterial({
+            size: 0.012,
+            color: 0xffd1dc,
+            transparent: true,
+            opacity: 0.8
+        });
+        const starField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(starField);
+
+        // 2. Tạo khối cầu ảnh 3D (Mô phỏng hình cầu ghép từ các mảnh ảnh)
+        const sphereGroup = new THREE.Group();
+        const imageTextures = [];
+        
+        // Tạo các tấm ảnh khung hiển thị xoay tròn dạng hình cầu
+        const geometryCard = new THREE.PlaneGeometry(0.3, 0.2);
+        const totalCards = 40;
+        
+        for (let i = 0; i < totalCards; i++) {
+            // Tạo màu sắc/khung giao diện card ngẫu nhiên giả lập ảnh kỷ niệm
+            const canvasCard = document.createElement('canvas');
+            canvasCard.width = 150;
+            canvasCard.height = 100;
+            const ctx = canvasCard.getContext('2d');
+            ctx.fillStyle = '#fff0f3';
+            ctx.fillRect(0, 0, 150, 100);
+            ctx.fillStyle = '#ff758c';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('Memory ' + (i + 1), 15, 50);
+
+            const texture = new THREE.CanvasTexture(canvasCard);
+            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geometryCard, material);
+
+            // Sắp xếp các tấm ảnh theo dạng hình cầu (Fibonacci sphere algorithm)
+            const phi = Math.acos(-1 + (2 * i) / totalCards);
+            const theta = Math.sqrt(totalCards * Math.PI) * phi;
+
+            mesh.position.setFromSphericalCoords(1.8, phi, theta);
+            mesh.lookAt(0, 0, 0);
+            sphereGroup.add(mesh);
+        }
+        scene.add(sphereGroup);
+
+        camera.position.z = 4.5;
+
+        // 3. Hiệu ứng chuyển cảnh chuỗi hoạt ảnh (Timeline Animation giống video)
+        // Dùng GSAP để điều khiển các góc quay và hiệu ứng nở khối theo nhịp nhạc/thời gian
+        gsap.to(sphereGroup.rotation, {
+            y: Math.PI * 4,
+            duration: 25,
+            repeat: -1,
+            ease: "none"
+        });
+
+        // Vòng lặp Render 3D
+        function animate() {
+            requestAnimationFrame(animate);
+            starField.rotation.y -= 0.0008;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Xử lý thay đổi kích thước cửa sổ trình duyệt
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
